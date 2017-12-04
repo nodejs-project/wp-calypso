@@ -64,7 +64,7 @@ const PromotionFormCard = ( {
 	);
 };
 
-PromotionFormCard.PropTypes = {
+PromotionFormCard.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	currency: PropTypes.string.isRequired,
 	promotion: PropTypes.shape( {
