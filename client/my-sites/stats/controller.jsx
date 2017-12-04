@@ -106,406 +106,400 @@ function getSiteFilters( siteId ) {
 	return filters;
 }
 
-export default {
-	resetFirstView( context ) {
-		context.store.dispatch( savePreference( 'firstViewHistory', [] ) );
-	},
+export const resetFirstView = function( context ) {
+	context.store.dispatch( savePreference( 'firstViewHistory', [] ) );
+};
 
-	redirectToDefaultSitePage: function( context, next ) {
-		const siteFragment = route.getSiteFragment( context.path );
+export const redirectToDefaultSitePage = function( context, next ) {
+	const siteFragment = route.getSiteFragment( context.path );
 
-		if ( siteFragment ) {
-			// if we are redirecting we need to retain our intended layout-focus
-			const currentLayoutFocus = getCurrentLayoutFocus( context.store.getState() );
-			context.store.dispatch( setNextLayoutFocus( currentLayoutFocus ) );
-			page.redirect( route.getStatsDefaultSitePage( siteFragment ) );
-		} else {
-			next();
-		}
-	},
+	if ( siteFragment ) {
+		// if we are redirecting we need to retain our intended layout-focus
+		const currentLayoutFocus = getCurrentLayoutFocus( context.store.getState() );
+		context.store.dispatch( setNextLayoutFocus( currentLayoutFocus ) );
+		page.redirect( route.getStatsDefaultSitePage( siteFragment ) );
+	} else {
+		next();
+	}
+};
 
-	insights: function( context ) {
-		const FollowList = require( 'lib/follow-list' );
-		let siteId = context.params.site_id;
-		const basePath = route.sectionify( context.path );
-		const followList = new FollowList();
+export const insights = function( context ) {
+	const FollowList = require( 'lib/follow-list' );
+	let siteId = context.params.site_id;
+	const basePath = route.sectionify( context.path );
+	const followList = new FollowList();
 
-		// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
-		context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
+	// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+	context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
 
-		const site = getSite( context.store.getState(), siteId );
-		siteId = site ? site.ID || 0 : 0;
+	const site = getSite( context.store.getState(), siteId );
+	siteId = site ? site.ID || 0 : 0;
 
-		analytics.pageView.record( basePath, analyticsPageTitle + ' > Insights' );
+	analytics.pageView.record( basePath, analyticsPageTitle + ' > Insights' );
 
-		const props = { followList };
+	const props = { followList };
+	renderWithReduxStore(
+		<AsyncLoad
+			require="my-sites/stats/stats-insights"
+			placeholder={ <StatsPagePlaceholder /> }
+			{ ...props }
+		/>,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
+
+export const overview = function( context, next ) {
+	const filters = function() {
+		return [
+			{
+				title: i18n.translate( 'Days' ),
+				path: '/stats/day',
+				altPaths: [ '/stats' ],
+				id: 'stats-day',
+				period: 'day',
+			},
+			{ title: i18n.translate( 'Weeks' ), path: '/stats/week', id: 'stats-week', period: 'week' },
+			{
+				title: i18n.translate( 'Months' ),
+				path: '/stats/month',
+				id: 'stats-month',
+				period: 'month',
+			},
+			{ title: i18n.translate( 'Years' ), path: '/stats/year', id: 'stats-year', period: 'year' },
+		];
+	};
+	const basePath = route.sectionify( context.path );
+
+	window.scrollTo( 0, 0 );
+
+	// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+	context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
+
+	const activeFilter = find( filters(), filter => {
+		return (
+			context.pathname === filter.path ||
+			( filter.altPaths && -1 !== filter.altPaths.indexOf( context.pathname ) )
+		);
+	} );
+
+	// Validate that date filter is legit
+	if ( ! activeFilter ) {
+		next();
+	} else {
+		analytics.mc.bumpStat( 'calypso_stats_overview_period', activeFilter.period );
+		analytics.pageView.record(
+			basePath,
+			analyticsPageTitle + ' > ' + titlecase( activeFilter.period )
+		);
+
+		const props = {
+			period: activeFilter.period,
+			path: context.pathname,
+		};
 		renderWithReduxStore(
 			<AsyncLoad
-				require="my-sites/stats/stats-insights"
 				placeholder={ <StatsPagePlaceholder /> }
+				require="my-sites/stats/overview"
 				{ ...props }
 			/>,
 			document.getElementById( 'primary' ),
 			context.store
 		);
-	},
+	}
+};
 
-	overview: function( context, next ) {
-		const filters = function() {
-			return [
-				{
-					title: i18n.translate( 'Days' ),
-					path: '/stats/day',
-					altPaths: [ '/stats' ],
-					id: 'stats-day',
-					period: 'day',
-				},
-				{ title: i18n.translate( 'Weeks' ), path: '/stats/week', id: 'stats-week', period: 'week' },
-				{
-					title: i18n.translate( 'Months' ),
-					path: '/stats/month',
-					id: 'stats-month',
-					period: 'month',
-				},
-				{ title: i18n.translate( 'Years' ), path: '/stats/year', id: 'stats-year', period: 'year' },
-			];
+export const site = function( context, next ) {
+	let siteId = context.params.site_id;
+	const filters = getSiteFilters( siteId );
+	const queryOptions = context.query;
+	let date;
+	let chartTab;
+	let period;
+	let numPeriodAgo = 0;
+	const basePath = route.sectionify( context.path );
+	let baseAnalyticsPath;
+
+	// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+	context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
+
+	const currentSite = getSite( context.store.getState(), siteId );
+	siteId = currentSite ? currentSite.ID || 0 : 0;
+
+	const activeFilter = find( filters, filter => {
+		return (
+			context.pathname === filter.path ||
+			( filter.altPaths && -1 !== filter.altPaths.indexOf( context.pathname ) )
+		);
+	} );
+
+	if ( ! activeFilter ) {
+		next();
+	} else {
+		if ( currentSite && currentSite.domain ) {
+			// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+			context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
+		}
+
+		const gmtOffset = getSiteOption( context.store.getState(), siteId, 'gmt_offset' );
+		const momentSiteZone = i18n.moment().utcOffset( Number.isFinite( gmtOffset ) ? gmtOffset : 0 );
+		if ( queryOptions.startDate && i18n.moment( queryOptions.startDate ).isValid() ) {
+			date = i18n.moment( queryOptions.startDate ).locale( 'en' );
+			numPeriodAgo = getNumPeriodAgo( momentSiteZone, date, activeFilter.period );
+		} else {
+			date = rangeOfPeriod( activeFilter.period, momentSiteZone.locale( 'en' ) ).startOf;
+		}
+
+		numPeriodAgo = parseInt( numPeriodAgo, 10 );
+		if ( numPeriodAgo ) {
+			if ( numPeriodAgo > 9 ) {
+				numPeriodAgo = '10plus';
+			}
+			numPeriodAgo = '-' + numPeriodAgo;
+		} else {
+			numPeriodAgo = '';
+		}
+
+		baseAnalyticsPath = basePath + '/:site';
+
+		analytics.mc.bumpStat( 'calypso_stats_site_period', activeFilter.period + numPeriodAgo );
+		analytics.pageView.record(
+			baseAnalyticsPath,
+			analyticsPageTitle + ' > ' + titlecase( activeFilter.period )
+		);
+
+		period = rangeOfPeriod( activeFilter.period, date );
+		chartTab = queryOptions.tab || 'views';
+
+		const siteComponentChildren = {
+			path: context.pathname,
+			date,
+			chartTab,
+			context,
+			period,
 		};
-		const basePath = route.sectionify( context.path );
 
-		window.scrollTo( 0, 0 );
+		renderWithReduxStore(
+			<AsyncLoad
+				placeholder={ <StatsPagePlaceholder /> }
+				require="my-sites/stats/site"
+				{ ...siteComponentChildren }
+			/>,
+			document.getElementById( 'primary' ),
+			context.store
+		);
+	}
+};
 
-		// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
-		context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
+export const summary = function( context, next ) {
+	let siteId = context.params.site_id;
+	const siteFragment = route.getSiteFragment( context.path );
+	const queryOptions = context.query;
+	const contextModule = context.params.module;
+	const filters = [
+		{
+			path: '/stats/' + contextModule + '/' + siteId,
+			altPaths: [ '/stats/day/' + contextModule + '/' + siteId ],
+			id: 'stats-day',
+			period: 'day',
+		},
+		{ path: '/stats/week/' + contextModule + '/' + siteId, id: 'stats-week', period: 'week' },
+		{ path: '/stats/month/' + contextModule + '/' + siteId, id: 'stats-month', period: 'month' },
+		{ path: '/stats/year/' + contextModule + '/' + siteId, id: 'stats-year', period: 'year' },
+	];
+	let date;
+	let period;
 
-		const activeFilter = find( filters(), filter => {
-			return (
-				context.pathname === filter.path ||
-				( filter.altPaths && -1 !== filter.altPaths.indexOf( context.pathname ) )
-			);
-		} );
+	const validModules = [
+		'posts',
+		'referrers',
+		'clicks',
+		'countryviews',
+		'authors',
+		'videoplays',
+		'videodetails',
+		'podcastdownloads',
+		'searchterms',
+	];
+	let momentSiteZone = i18n.moment();
+	const basePath = route.sectionify( context.path );
 
-		// Validate that date filter is legit
-		if ( ! activeFilter ) {
-			next();
-		} else {
-			analytics.mc.bumpStat( 'calypso_stats_overview_period', activeFilter.period );
-			analytics.pageView.record(
-				basePath,
-				analyticsPageTitle + ' > ' + titlecase( activeFilter.period )
-			);
+	const site = getSite( context.store.getState(), siteId );
+	siteId = site ? site.ID || 0 : 0;
 
-			const props = {
-				period: activeFilter.period,
-				path: context.pathname,
-			};
-			renderWithReduxStore(
-				<AsyncLoad
-					placeholder={ <StatsPagePlaceholder /> }
-					require="my-sites/stats/overview"
-					{ ...props }
-				/>,
-				document.getElementById( 'primary' ),
-				context.store
-			);
+	const activeFilter = find( filters, filter => {
+		return (
+			context.pathname === filter.path ||
+			( filter.altPaths && -1 !== filter.altPaths.indexOf( context.pathname ) )
+		);
+	} );
+
+	if ( siteFragment && 0 === siteId ) {
+		// site is not in the user's site list
+		window.location = '/stats';
+	} else if ( ! activeFilter || -1 === validModules.indexOf( context.params.module ) ) {
+		next();
+	} else {
+		const gmtOffset = getSiteOption( context.store.getState(), siteId, 'gmt_offset' );
+		if ( Number.isFinite( gmtOffset ) ) {
+			momentSiteZone = i18n.moment().utcOffset( gmtOffset );
 		}
-	},
-
-	site: function( context, next ) {
-		let siteId = context.params.site_id;
-		const filters = getSiteFilters( siteId );
-		const queryOptions = context.query;
-		let date;
-		let chartTab;
-		let period;
-		let numPeriodAgo = 0;
-		const basePath = route.sectionify( context.path );
-		let baseAnalyticsPath;
-
-		// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
-		context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
-
-		const currentSite = getSite( context.store.getState(), siteId );
-		siteId = currentSite ? currentSite.ID || 0 : 0;
-
-		const activeFilter = find( filters, filter => {
-			return (
-				context.pathname === filter.path ||
-				( filter.altPaths && -1 !== filter.altPaths.indexOf( context.pathname ) )
-			);
-		} );
-
-		if ( ! activeFilter ) {
-			next();
+		if ( queryOptions.startDate && i18n.moment( queryOptions.startDate ).isValid() ) {
+			date = i18n.moment( queryOptions.startDate );
 		} else {
-			if ( currentSite && currentSite.domain ) {
-				// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
-				context.store.dispatch( setTitle( i18n.translate( 'Stats', { textOnly: true } ) ) );
-			}
-
-			const gmtOffset = getSiteOption( context.store.getState(), siteId, 'gmt_offset' );
-			const momentSiteZone = i18n
-				.moment()
-				.utcOffset( Number.isFinite( gmtOffset ) ? gmtOffset : 0 );
-			if ( queryOptions.startDate && i18n.moment( queryOptions.startDate ).isValid() ) {
-				date = i18n.moment( queryOptions.startDate ).locale( 'en' );
-				numPeriodAgo = getNumPeriodAgo( momentSiteZone, date, activeFilter.period );
-			} else {
-				date = rangeOfPeriod( activeFilter.period, momentSiteZone.locale( 'en' ) ).startOf;
-			}
-
-			numPeriodAgo = parseInt( numPeriodAgo, 10 );
-			if ( numPeriodAgo ) {
-				if ( numPeriodAgo > 9 ) {
-					numPeriodAgo = '10plus';
-				}
-				numPeriodAgo = '-' + numPeriodAgo;
-			} else {
-				numPeriodAgo = '';
-			}
-
-			baseAnalyticsPath = basePath + '/:site';
-
-			analytics.mc.bumpStat( 'calypso_stats_site_period', activeFilter.period + numPeriodAgo );
-			analytics.pageView.record(
-				baseAnalyticsPath,
-				analyticsPageTitle + ' > ' + titlecase( activeFilter.period )
-			);
-
-			period = rangeOfPeriod( activeFilter.period, date );
-			chartTab = queryOptions.tab || 'views';
-
-			const siteComponentChildren = {
-				path: context.pathname,
-				date,
-				chartTab,
-				context,
-				period,
-			};
-
-			renderWithReduxStore(
-				<AsyncLoad
-					placeholder={ <StatsPagePlaceholder /> }
-					require="my-sites/stats/site"
-					{ ...siteComponentChildren }
-				/>,
-				document.getElementById( 'primary' ),
-				context.store
-			);
+			date = momentSiteZone.endOf( activeFilter.period );
 		}
-	},
+		period = rangeOfPeriod( activeFilter.period, date );
 
-	summary: function( context, next ) {
-		let siteId = context.params.site_id;
-		const siteFragment = route.getSiteFragment( context.path );
-		const queryOptions = context.query;
-		const contextModule = context.params.module;
-		const filters = [
-			{
-				path: '/stats/' + contextModule + '/' + siteId,
-				altPaths: [ '/stats/day/' + contextModule + '/' + siteId ],
-				id: 'stats-day',
-				period: 'day',
-			},
-			{ path: '/stats/week/' + contextModule + '/' + siteId, id: 'stats-week', period: 'week' },
-			{ path: '/stats/month/' + contextModule + '/' + siteId, id: 'stats-month', period: 'month' },
-			{ path: '/stats/year/' + contextModule + '/' + siteId, id: 'stats-year', period: 'year' },
-		];
-		let date;
-		let period;
+		const extraProps =
+			context.params.module === 'videodetails' ? { postId: parseInt( queryOptions.post, 10 ) } : {};
 
-		const validModules = [
-			'posts',
-			'referrers',
-			'clicks',
-			'countryviews',
-			'authors',
-			'videoplays',
-			'videodetails',
-			'podcastdownloads',
-			'searchterms',
-		];
-		let momentSiteZone = i18n.moment();
-		const basePath = route.sectionify( context.path );
+		let statsQueryOptions = {};
 
-		const site = getSite( context.store.getState(), siteId );
-		siteId = site ? site.ID || 0 : 0;
-
-		const activeFilter = find( filters, filter => {
-			return (
-				context.pathname === filter.path ||
-				( filter.altPaths && -1 !== filter.altPaths.indexOf( context.pathname ) )
-			);
-		} );
-
-		if ( siteFragment && 0 === siteId ) {
-			// site is not in the user's site list
-			window.location = '/stats';
-		} else if ( ! activeFilter || -1 === validModules.indexOf( context.params.module ) ) {
-			next();
-		} else {
-			const gmtOffset = getSiteOption( context.store.getState(), siteId, 'gmt_offset' );
-			if ( Number.isFinite( gmtOffset ) ) {
-				momentSiteZone = i18n.moment().utcOffset( gmtOffset );
-			}
-			if ( queryOptions.startDate && i18n.moment( queryOptions.startDate ).isValid() ) {
-				date = i18n.moment( queryOptions.startDate );
-			} else {
-				date = momentSiteZone.endOf( activeFilter.period );
-			}
-			period = rangeOfPeriod( activeFilter.period, date );
-
-			const extraProps =
-				context.params.module === 'videodetails'
-					? { postId: parseInt( queryOptions.post, 10 ) }
-					: {};
-
-			let statsQueryOptions = {};
-
-			// All Time Summary Support
-			if ( queryOptions.summarize && queryOptions.num ) {
-				statsQueryOptions = pick( queryOptions, [ 'num', 'summarize' ] );
-				statsQueryOptions.period = 'day';
-			}
-
-			analytics.pageView.record(
-				basePath,
-				analyticsPageTitle +
-					' > ' +
-					titlecase( activeFilter.period ) +
-					' > ' +
-					titlecase( context.params.module )
-			);
-
-			const props = {
-				path: context.pathname,
-				statsQueryOptions,
-				date,
-				context,
-				period,
-				...extraProps,
-			};
-			renderWithReduxStore(
-				<AsyncLoad
-					placeholder={ <StatsPagePlaceholder /> }
-					require="my-sites/stats/summary"
-					{ ...props }
-				/>,
-				document.getElementById( 'primary' ),
-				context.store
-			);
+		// All Time Summary Support
+		if ( queryOptions.summarize && queryOptions.num ) {
+			statsQueryOptions = pick( queryOptions, [ 'num', 'summarize' ] );
+			statsQueryOptions.period = 'day';
 		}
-	},
 
-	post: function( context ) {
-		let siteId = context.params.site_id;
-		const postId = parseInt( context.params.post_id, 10 );
-		const pathParts = context.path.split( '/' );
-		const postOrPage = pathParts[ 2 ] === 'post' ? 'post' : 'page';
+		analytics.pageView.record(
+			basePath,
+			analyticsPageTitle +
+				' > ' +
+				titlecase( activeFilter.period ) +
+				' > ' +
+				titlecase( context.params.module )
+		);
 
-		const site = getSite( context.store.getState(), siteId );
-		siteId = site ? site.ID || 0 : 0;
+		const props = {
+			path: context.pathname,
+			statsQueryOptions,
+			date,
+			context,
+			period,
+			...extraProps,
+		};
+		renderWithReduxStore(
+			<AsyncLoad
+				placeholder={ <StatsPagePlaceholder /> }
+				require="my-sites/stats/summary"
+				{ ...props }
+			/>,
+			document.getElementById( 'primary' ),
+			context.store
+		);
+	}
+};
 
-		if ( 0 === siteId ) {
-			window.location = '/stats';
-		} else {
-			analytics.pageView.record(
-				'/stats/' + postOrPage + '/:post_id/:site',
-				analyticsPageTitle + ' > Single ' + titlecase( postOrPage )
-			);
+export const post = function( context ) {
+	let siteId = context.params.site_id;
+	const postId = parseInt( context.params.post_id, 10 );
+	const pathParts = context.path.split( '/' );
+	const postOrPage = pathParts[ 2 ] === 'post' ? 'post' : 'page';
 
-			const props = {
-				path: context.path,
-				postId,
-				context,
-			};
-			renderWithReduxStore(
-				<AsyncLoad
-					placeholder={ <StatsPagePlaceholder /> }
-					require="my-sites/stats/stats-post-detail"
-					{ ...props }
-				/>,
-				document.getElementById( 'primary' ),
-				context.store
-			);
+	const site = getSite( context.store.getState(), siteId );
+	siteId = site ? site.ID || 0 : 0;
+
+	if ( 0 === siteId ) {
+		window.location = '/stats';
+	} else {
+		analytics.pageView.record(
+			'/stats/' + postOrPage + '/:post_id/:site',
+			analyticsPageTitle + ' > Single ' + titlecase( postOrPage )
+		);
+
+		const props = {
+			path: context.path,
+			postId,
+			context,
+		};
+		renderWithReduxStore(
+			<AsyncLoad
+				placeholder={ <StatsPagePlaceholder /> }
+				require="my-sites/stats/stats-post-detail"
+				{ ...props }
+			/>,
+			document.getElementById( 'primary' ),
+			context.store
+		);
+	}
+};
+
+export const follows = function( context ) {
+	let siteId = context.params.site_id;
+	const FollowList = require( 'lib/follow-list' );
+	let pageNum = context.params.page_num;
+	const followList = new FollowList();
+	const basePath = route.sectionify( context.path );
+
+	const site = getSite( context.store.getState(), siteId );
+	siteId = site ? site.ID || 0 : 0;
+
+	const siteDomain =
+		site && typeof site.slug !== 'undefined' ? site.slug : route.getSiteFragment( context.path );
+
+	if ( 0 === siteId ) {
+		window.location = '/stats';
+	} else {
+		pageNum = parseInt( pageNum, 10 );
+
+		if ( ! pageNum || pageNum < 1 ) {
+			pageNum = 1;
 		}
-	},
 
-	follows: function( context ) {
-		let siteId = context.params.site_id;
-		const FollowList = require( 'lib/follow-list' );
-		let pageNum = context.params.page_num;
-		const followList = new FollowList();
-		const basePath = route.sectionify( context.path );
+		analytics.pageView.record(
+			basePath.replace( '/' + pageNum, '' ),
+			analyticsPageTitle + ' > Followers > Comment'
+		);
 
-		const site = getSite( context.store.getState(), siteId );
-		siteId = site ? site.ID || 0 : 0;
+		const props = {
+			path: context.path,
+			page: pageNum,
+			perPage: 20,
+			total: 10,
+			domain: siteDomain,
+			siteId,
+			followList,
+		};
+		renderWithReduxStore(
+			<AsyncLoad
+				placeholder={ <StatsPagePlaceholder /> }
+				require="my-sites/stats/comment-follows"
+				{ ...props }
+			/>,
+			document.getElementById( 'primary' ),
+			context.store
+		);
+	}
+};
 
-		const siteDomain =
-			site && typeof site.slug !== 'undefined' ? site.slug : route.getSiteFragment( context.path );
+export const activityLog = function( context ) {
+	const state = context.store.getState();
+	const siteId = getSelectedSiteId( state );
+	const isJetpack = isJetpackSite( state, siteId );
+	const startDate = i18n.moment( context.query.startDate, 'YYYY-MM-DD' ).isValid()
+		? context.query.startDate
+		: undefined;
 
-		if ( 0 === siteId ) {
-			window.location = '/stats';
-		} else {
-			pageNum = parseInt( pageNum, 10 );
+	if ( siteId && ! isJetpack ) {
+		page.redirect( '/stats' );
+	} else {
+		analytics.pageView.record( '/stats/activity/:site', analyticsPageTitle + ' > Activity ' );
 
-			if ( ! pageNum || pageNum < 1 ) {
-				pageNum = 1;
-			}
-
-			analytics.pageView.record(
-				basePath.replace( '/' + pageNum, '' ),
-				analyticsPageTitle + ' > Followers > Comment'
-			);
-
-			const props = {
-				path: context.path,
-				page: pageNum,
-				perPage: 20,
-				total: 10,
-				domain: siteDomain,
-				siteId,
-				followList,
-			};
-			renderWithReduxStore(
-				<AsyncLoad
-					placeholder={ <StatsPagePlaceholder /> }
-					require="my-sites/stats/comment-follows"
-					{ ...props }
-				/>,
-				document.getElementById( 'primary' ),
-				context.store
-			);
-		}
-	},
-
-	activityLog: function( context ) {
-		const state = context.store.getState();
-		const siteId = getSelectedSiteId( state );
-		const isJetpack = isJetpackSite( state, siteId );
-		const startDate = i18n.moment( context.query.startDate, 'YYYY-MM-DD' ).isValid()
-			? context.query.startDate
-			: undefined;
-
-		if ( siteId && ! isJetpack ) {
-			page.redirect( '/stats' );
-		} else {
-			analytics.pageView.record( '/stats/activity/:site', analyticsPageTitle + ' > Activity ' );
-
-			const props = {
-				path: context.path,
-				siteId,
-				context,
-				startDate,
-			};
-			renderWithReduxStore(
-				<AsyncLoad
-					placeholder={ <StatsPagePlaceholder /> }
-					require="my-sites/stats/activity-log"
-					{ ...props }
-				/>,
-				document.getElementById( 'primary' ),
-				context.store
-			);
-		}
-	},
+		const props = {
+			path: context.path,
+			siteId,
+			context,
+			startDate,
+		};
+		renderWithReduxStore(
+			<AsyncLoad
+				placeholder={ <StatsPagePlaceholder /> }
+				require="my-sites/stats/activity-log"
+				{ ...props }
+			/>,
+			document.getElementById( 'primary' ),
+			context.store
+		);
+	}
 };

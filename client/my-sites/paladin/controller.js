@@ -12,12 +12,10 @@ import React from 'react';
 import { renderWithReduxStore } from 'lib/react-helpers';
 import PaladinComponent from './main';
 
-export default {
-	activate: function( context ) {
-		renderWithReduxStore(
-			React.createElement( PaladinComponent ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+export const activate = function( context ) {
+	renderWithReduxStore(
+		React.createElement( PaladinComponent ),
+		document.getElementById( 'primary' ),
+		context.store
+	);
 };

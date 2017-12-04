@@ -35,102 +35,100 @@ const basePageTitle = 'Signup'; // used for analytics, doesn't require translati
  */
 let initialContext;
 
-export default {
-	redirectWithoutLocaleIfLoggedIn( context, next ) {
-		if ( user.get() && utils.getLocale( context.params ) ) {
-			const flowName = utils.getFlowName( context.params ),
-				stepName = utils.getStepName( context.params ),
-				stepSectionName = utils.getStepSectionName( context.params );
-			let urlWithoutLocale = utils.getStepUrl( flowName, stepName, stepSectionName );
-
-			if ( config.isEnabled( 'wpcom-user-bootstrap' ) ) {
-				return page.redirect( urlWithoutLocale );
-			}
-
-			if ( ! isEmpty( context.query ) ) {
-				urlWithoutLocale += '?' + context.querystring;
-			}
-
-			if ( ! isEmpty( context.hash ) ) {
-				urlWithoutLocale += '#' + context.hashstring;
-			}
-
-			window.location = urlWithoutLocale;
-			return;
-		}
-
-		next();
-	},
-
-	saveInitialContext( context, next ) {
-		if ( ! initialContext ) {
-			initialContext = Object.assign( {}, context );
-		}
-
-		next();
-	},
-
-	redirectToFlow( context, next ) {
-		const flowName = utils.getFlowName( context.params );
-		const localeFromParams = utils.getLocale( context.params );
-		const localeFromStore = store.get( 'signup-locale' );
-
-		// if flow can be resumed, use saved locale
-		if (
-			! user.get() &&
-			! localeFromParams &&
-			localeFromStore &&
-			utils.canResumeFlow( flowName, SignupProgressStore.getFromCache() )
-		) {
-			window.location =
-				utils.getStepUrl(
-					flowName,
-					utils.getStepName( context.params ),
-					utils.getStepSectionName( context.params ),
-					localeFromStore
-				) +
-				( context.querystring ? '?' + context.querystring : '' ) +
-				( context.hashstring ? '#' + context.hashstring : '' );
-			return;
-		}
-
-		if ( context.pathname !== utils.getValidPath( context.params ) ) {
-			return page.redirect(
-				utils.getValidPath( context.params ) +
-					( context.querystring ? '?' + context.querystring : '' )
-			);
-		}
-
-		store.set( 'signup-locale', localeFromParams );
-
-		next();
-	},
-
-	start( context ) {
-		const basePath = route.sectionify( context.path ),
-			flowName = utils.getFlowName( context.params ),
+export const redirectWithoutLocaleIfLoggedIn = function( context, next ) {
+	if ( user.get() && utils.getLocale( context.params ) ) {
+		const flowName = utils.getFlowName( context.params ),
 			stepName = utils.getStepName( context.params ),
 			stepSectionName = utils.getStepSectionName( context.params );
+		let urlWithoutLocale = utils.getStepUrl( flowName, stepName, stepSectionName );
 
-		analytics.pageView.record(
-			basePath,
-			basePageTitle + ' > Start > ' + flowName + ' > ' + stepName
+		if ( config.isEnabled( 'wpcom-user-bootstrap' ) ) {
+			return page.redirect( urlWithoutLocale );
+		}
+
+		if ( ! isEmpty( context.query ) ) {
+			urlWithoutLocale += '?' + context.querystring;
+		}
+
+		if ( ! isEmpty( context.hash ) ) {
+			urlWithoutLocale += '#' + context.hashstring;
+		}
+
+		window.location = urlWithoutLocale;
+		return;
+	}
+
+	next();
+};
+
+export const saveInitialContext = function( context, next ) {
+	if ( ! initialContext ) {
+		initialContext = Object.assign( {}, context );
+	}
+
+	next();
+};
+
+export const redirectToFlow = function( context, next ) {
+	const flowName = utils.getFlowName( context.params );
+	const localeFromParams = utils.getLocale( context.params );
+	const localeFromStore = store.get( 'signup-locale' );
+
+	// if flow can be resumed, use saved locale
+	if (
+		! user.get() &&
+		! localeFromParams &&
+		localeFromStore &&
+		utils.canResumeFlow( flowName, SignupProgressStore.getFromCache() )
+	) {
+		window.location =
+			utils.getStepUrl(
+				flowName,
+				utils.getStepName( context.params ),
+				utils.getStepSectionName( context.params ),
+				localeFromStore
+			) +
+			( context.querystring ? '?' + context.querystring : '' ) +
+			( context.hashstring ? '#' + context.hashstring : '' );
+		return;
+	}
+
+	if ( context.pathname !== utils.getValidPath( context.params ) ) {
+		return page.redirect(
+			utils.getValidPath( context.params ) +
+				( context.querystring ? '?' + context.querystring : '' )
 		);
+	}
 
-		ReactDom.unmountComponentAtNode( document.getElementById( 'secondary' ) );
-		context.store.dispatch( setLayoutFocus( 'content' ) );
+	store.set( 'signup-locale', localeFromParams );
 
-		renderWithReduxStore(
-			React.createElement( SignupComponent, {
-				path: context.path,
-				initialContext,
-				locale: utils.getLocale( context.params ),
-				flowName: flowName,
-				stepName: stepName,
-				stepSectionName: stepSectionName,
-			} ),
-			'primary',
-			context.store
-		);
-	},
+	next();
+};
+
+export const start = function( context ) {
+	const basePath = route.sectionify( context.path ),
+		flowName = utils.getFlowName( context.params ),
+		stepName = utils.getStepName( context.params ),
+		stepSectionName = utils.getStepSectionName( context.params );
+
+	analytics.pageView.record(
+		basePath,
+		basePageTitle + ' > Start > ' + flowName + ' > ' + stepName
+	);
+
+	ReactDom.unmountComponentAtNode( document.getElementById( 'secondary' ) );
+	context.store.dispatch( setLayoutFocus( 'content' ) );
+
+	renderWithReduxStore(
+		React.createElement( SignupComponent, {
+			path: context.path,
+			initialContext,
+			locale: utils.getLocale( context.params ),
+			flowName: flowName,
+			stepName: stepName,
+			stepSectionName: stepSectionName,
+		} ),
+		'primary',
+		context.store
+	);
 };

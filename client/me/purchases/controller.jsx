@@ -35,119 +35,117 @@ function setTitle( context, ...title ) {
 	context.store.dispatch( setDocumentHeadTitle( concatTitle( titles.purchases, ...title ) ) );
 }
 
-export default {
-	addCardDetails( context ) {
-		setTitle( context, titles.addCardDetails );
+export const addCardDetails = function( context ) {
+	setTitle( context, titles.addCardDetails );
 
-		recordPurchasesPageView( paths.addCardDetails(), 'Add Card Details' );
+	recordPurchasesPageView( paths.addCardDetails(), 'Add Card Details' );
 
-		renderWithReduxStore(
-			<AddCardDetails purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<AddCardDetails purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	addCreditCard( context ) {
-		recordPurchasesPageView( paths.addCreditCard(), 'Add Credit Card' );
+export const addCreditCard = function( context ) {
+	recordPurchasesPageView( paths.addCreditCard(), 'Add Credit Card' );
 
-		renderWithReduxStore( <AddCreditCard />, document.getElementById( 'primary' ), context.store );
-	},
+	renderWithReduxStore( <AddCreditCard />, document.getElementById( 'primary' ), context.store );
+};
 
-	cancelPrivacyProtection( context ) {
-		setTitle( context, titles.cancelPrivacyProtection );
+export const cancelPrivacyProtection = function( context ) {
+	setTitle( context, titles.cancelPrivacyProtection );
 
-		recordPurchasesPageView( paths.cancelPrivacyProtection(), 'Cancel Privacy Protection' );
+	recordPurchasesPageView( paths.cancelPrivacyProtection(), 'Cancel Privacy Protection' );
 
-		renderWithReduxStore(
-			<CancelPrivacyProtection purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<CancelPrivacyProtection purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	cancelPurchase( context ) {
-		setTitle( context, titles.cancelPurchase );
+export const cancelPurchase = function( context ) {
+	setTitle( context, titles.cancelPurchase );
 
-		recordPurchasesPageView( paths.cancelPurchase(), 'Cancel Purchase' );
+	recordPurchasesPageView( paths.cancelPurchase(), 'Cancel Purchase' );
 
-		renderWithReduxStore(
-			<CancelPurchase purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<CancelPurchase purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	confirmCancelDomain( context ) {
-		setTitle( context, titles.confirmCancelDomain );
+export const confirmCancelDomain = function( context ) {
+	setTitle( context, titles.confirmCancelDomain );
 
-		recordPurchasesPageView( paths.confirmCancelDomain(), 'Confirm Cancel Domain' );
+	recordPurchasesPageView( paths.confirmCancelDomain(), 'Confirm Cancel Domain' );
 
-		renderWithReduxStore(
-			<ConfirmCancelDomain purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<ConfirmCancelDomain purchaseId={ parseInt( context.params.purchaseId, 10 ) } />,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	editCardDetails( context ) {
-		setTitle( context, titles.editCardDetails );
+export const editCardDetails = function( context ) {
+	setTitle( context, titles.editCardDetails );
 
-		recordPurchasesPageView( paths.editCardDetails(), 'Edit Card Details' );
+	recordPurchasesPageView( paths.editCardDetails(), 'Edit Card Details' );
 
-		renderWithReduxStore(
-			<EditCardDetails
-				cardId={ context.params.cardId }
-				purchaseId={ parseInt( context.params.purchaseId, 10 ) }
-			/>,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<EditCardDetails
+			cardId={ context.params.cardId }
+			purchaseId={ parseInt( context.params.purchaseId, 10 ) }
+		/>,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	list( context ) {
-		setTitle( context );
+export const list = function( context ) {
+	setTitle( context );
 
-		recordPurchasesPageView( paths.purchasesRoot() );
+	recordPurchasesPageView( paths.purchasesRoot() );
 
-		renderWithReduxStore(
-			<PurchasesList noticeType={ context.params.noticeType } />,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<PurchasesList noticeType={ context.params.noticeType } />,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	managePurchase( context ) {
-		setTitle( context, titles.managePurchase );
+export const managePurchase = function( context ) {
+	setTitle( context, titles.managePurchase );
 
-		recordPurchasesPageView( paths.managePurchase(), 'Manage Purchase' );
+	recordPurchasesPageView( paths.managePurchase(), 'Manage Purchase' );
 
-		renderWithReduxStore(
-			<ManagePurchase
-				purchaseId={ parseInt( context.params.purchaseId, 10 ) }
-				destinationType={ context.params.destinationType }
-			/>,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<ManagePurchase
+			purchaseId={ parseInt( context.params.purchaseId, 10 ) }
+			destinationType={ context.params.destinationType }
+		/>,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	noSitesMessage( context, next ) {
-		if ( user.get().site_count > 0 ) {
-			return next();
-		}
+export const noSitesMessage = function( context, next ) {
+	if ( user.get().site_count > 0 ) {
+		return next();
+	}
 
-		setTitle( context );
+	setTitle( context );
 
-		recordPurchasesPageView( context.path, 'No Sites' );
+	recordPurchasesPageView( context.path, 'No Sites' );
 
-		renderWithReduxStore(
-			<Main>
-				<PurchasesHeader section={ 'purchases' } />
-				<NoSitesMessage />
-			</Main>,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		<Main>
+			<PurchasesHeader section={ 'purchases' } />
+			<NoSitesMessage />
+		</Main>,
+		document.getElementById( 'primary' ),
+		context.store
+	);
 };

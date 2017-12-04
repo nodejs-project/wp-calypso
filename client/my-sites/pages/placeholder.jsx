@@ -48,7 +48,5 @@ class MarkerPlaceholder extends React.Component {
 	}
 }
 
-export default {
-	Page: localize( PagePlaceholder ),
-	Marker: localize( MarkerPlaceholder ),
-};
+export const Page = localize( PagePlaceholder );
+export const Marker = localize( MarkerPlaceholder );

@@ -12,7 +12,7 @@ import { get, reduce } from 'lodash';
  * @param  {Number} siteId   Site ID
  * @return {Object}          Sync status object
  */
-function getSyncStatus( state, siteId ) {
+export function getSyncStatus( state, siteId ) {
 	return get( state, [ 'jetpackSync', 'syncStatus', siteId ] );
 }
 
@@ -22,7 +22,7 @@ function getSyncStatus( state, siteId ) {
  * @param  {Number} siteId   Site ID
  * @return {Object}          Full sync request object
  */
-function getFullSyncRequest( state, siteId ) {
+export function getFullSyncRequest( state, siteId ) {
 	return get( state, [ 'jetpackSync', 'fullSyncRequest', siteId ] );
 }
 
@@ -32,7 +32,7 @@ function getFullSyncRequest( state, siteId ) {
  * @param  {Number} siteId   Site ID
  * @return {Boolean}         Whether a sync is pending start for site
  */
-function isPendingSyncStart( state, siteId ) {
+export function isPendingSyncStart( state, siteId ) {
 	const syncStatus = getSyncStatus( state, siteId );
 	const fullSyncRequest = getFullSyncRequest( state, siteId );
 
@@ -66,7 +66,7 @@ function isPendingSyncStart( state, siteId ) {
  * @param  {Number} siteId   Site ID
  * @return {Boolean}         Whether a sync is in the process of syncing
  */
-function isFullSyncing( state, siteId ) {
+export function isFullSyncing( state, siteId ) {
 	const syncStatus = getSyncStatus( state, siteId );
 	if ( ! syncStatus ) {
 		return false;
@@ -84,7 +84,7 @@ function isFullSyncing( state, siteId ) {
  * @param  {Number} siteId   Site ID
  * @return {Number}          The percentage of sync completed, expressed as an integer
  */
-function getSyncProgressPercentage( state, siteId ) {
+export function getSyncProgressPercentage( state, siteId ) {
 	const syncStatus = getSyncStatus( state, siteId ),
 		queued = get( syncStatus, 'queue' ),
 		sent = get( syncStatus, 'sent' ),
@@ -125,11 +125,3 @@ function getSyncProgressPercentage( state, siteId ) {
 
 	return Math.ceil( percentQueued + percentSent );
 }
-
-export default {
-	getSyncStatus,
-	getFullSyncRequest,
-	isPendingSyncStart,
-	isFullSyncing,
-	getSyncProgressPercentage,
-};

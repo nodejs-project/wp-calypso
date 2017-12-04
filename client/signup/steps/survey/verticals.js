@@ -29,11 +29,9 @@ const verticals = [
 
 let shuffledVerticals = null;
 
-export default {
-	get() {
-		if ( shuffledVerticals ) {
-			return shuffledVerticals;
-		}
-		return ( shuffledVerticals = shuffle( verticals ) );
-	},
+export const get = function() {
+	if ( shuffledVerticals ) {
+		return shuffledVerticals;
+	}
+	return ( shuffledVerticals = shuffle( verticals ) );
 };

@@ -23,99 +23,88 @@ import userFactory from 'lib/user';
 import Main from 'components/main';
 import PulsingDot from 'components/pulsing-dot';
 
-export default {
-	oauthLogin: function() {
-		if ( config.isEnabled( 'oauth' ) ) {
-			if ( OAuthToken.getToken() ) {
-				page( '/' );
-			} else {
-				ReactDom.render( <OAuthLogin />, document.getElementById( 'primary' ) );
-			}
-		} else {
+export const oauthLogin = function() {
+	if ( config.isEnabled( 'oauth' ) ) {
+		if ( OAuthToken.getToken() ) {
 			page( '/' );
+		} else {
+			ReactDom.render( <OAuthLogin />, document.getElementById( 'primary' ) );
 		}
-	},
+	} else {
+		page( '/' );
+	}
+};
 
-	checkToken: function( context, next ) {
-		const loggedOutRoutes = [
-				'/oauth-login',
-				'/oauth',
-				'/start',
-				'/authorize',
-				'/api/oauth/token',
-			],
-			isValidSection = loggedOutRoutes.some( route => startsWith( context.path, route ) );
+export const checkToken = function( context, next ) {
+	const loggedOutRoutes = [ '/oauth-login', '/oauth', '/start', '/authorize', '/api/oauth/token' ],
+		isValidSection = loggedOutRoutes.some( route => startsWith( context.path, route ) );
 
-		// Check we have an OAuth token, otherwise redirect to auth/login page
-		if ( OAuthToken.getToken() === false && ! isValidSection ) {
-			if ( config( 'env_id' ) === 'desktop' ) {
-				return page( config( 'login_url' ) );
-			}
-
-			return page( '/authorize' );
+	// Check we have an OAuth token, otherwise redirect to auth/login page
+	if ( OAuthToken.getToken() === false && ! isValidSection ) {
+		if ( config( 'env_id' ) === 'desktop' ) {
+			return page( config( 'login_url' ) );
 		}
 
-		next();
-	},
+		return page( '/authorize' );
+	}
 
-	// This controller renders the API authentication screen
-	// for granting the app access to the user data using oauth
-	authorize: function() {
-		let authUrl;
+	next();
+};
 
-		if ( config( 'oauth_client_id' ) ) {
-			const port = process.env.PORT || config( 'port' );
-			const oauthSettings = {
-				response_type: 'token',
-				client_id: config( 'oauth_client_id' ),
-				client_secret: 'n/a',
-				url: {
-					redirect: `http://calypso.localhost:${ port }/api/oauth/token`,
-				},
-			};
+export const authorize = function() {
+	let authUrl;
 
-			const wpoauth = WPOAuth( oauthSettings );
-			authUrl = wpoauth.urlToConnect( { scope: 'global', blog_id: 0 } );
+	if ( config( 'oauth_client_id' ) ) {
+		const port = process.env.PORT || config( 'port' );
+		const oauthSettings = {
+			response_type: 'token',
+			client_id: config( 'oauth_client_id' ),
+			client_secret: 'n/a',
+			url: {
+				redirect: `http://calypso.localhost:${ port }/api/oauth/token`,
+			},
+		};
+
+		const wpoauth = WPOAuth( oauthSettings );
+		authUrl = wpoauth.urlToConnect( { scope: 'global', blog_id: 0 } );
+	}
+
+	ReactDom.render(
+		React.createElement( ConnectComponent, {
+			authUrl: authUrl,
+		} ),
+		document.getElementById( 'primary' )
+	);
+};
+
+export const getToken = function( context ) {
+	if ( context.hash && context.hash.access_token ) {
+		store.set( 'wpcom_token', context.hash.access_token );
+		wpcom.loadToken( context.hash.access_token );
+	}
+
+	if ( context.hash && context.hash.expires_in ) {
+		store.set( 'wpcom_token_expires_in', context.hash.expires_in );
+	}
+
+	// Extract this into a component...
+	ReactDom.render(
+		<Main className="auth">
+			<p className="auth__welcome">Loading user...</p>
+			<PulsingDot active />
+		</Main>,
+		document.getElementById( 'primary' )
+	);
+
+	// Fetch user and redirect to /sites on success.
+	const user = userFactory();
+	user.fetching = false;
+	user.fetch();
+	user.on( 'change', function() {
+		if ( config.isEnabled( 'devdocs' ) ) {
+			window.location = '/devdocs/welcome';
+		} else {
+			window.location = '/';
 		}
-
-		ReactDom.render(
-			React.createElement( ConnectComponent, {
-				authUrl: authUrl,
-			} ),
-			document.getElementById( 'primary' )
-		);
-	},
-
-	// Retrieve token from local storage
-	getToken: function( context ) {
-		if ( context.hash && context.hash.access_token ) {
-			store.set( 'wpcom_token', context.hash.access_token );
-			wpcom.loadToken( context.hash.access_token );
-		}
-
-		if ( context.hash && context.hash.expires_in ) {
-			store.set( 'wpcom_token_expires_in', context.hash.expires_in );
-		}
-
-		// Extract this into a component...
-		ReactDom.render(
-			<Main className="auth">
-				<p className="auth__welcome">Loading user...</p>
-				<PulsingDot active />
-			</Main>,
-			document.getElementById( 'primary' )
-		);
-
-		// Fetch user and redirect to /sites on success.
-		const user = userFactory();
-		user.fetching = false;
-		user.fetch();
-		user.on( 'change', function() {
-			if ( config.isEnabled( 'devdocs' ) ) {
-				window.location = '/devdocs/welcome';
-			} else {
-				window.location = '/';
-			}
-		} );
-	},
+	} );
 };

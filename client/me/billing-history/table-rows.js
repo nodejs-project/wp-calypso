@@ -7,7 +7,7 @@
 import { moment } from 'i18n-calypso';
 import { flatten, isDate, omit, some, values, without } from 'lodash';
 
-function formatDate( date ) {
+export function formatDate( date ) {
 	return moment( date ).format( 'MMM D, YYYY' );
 }
 
@@ -36,7 +36,7 @@ function search( transactions, searchQuery ) {
 	} );
 }
 
-function filter( transactions, params ) {
+export function filter( transactions, params ) {
 	if ( params.search ) {
 		transactions = search( transactions, params.search );
 	}
@@ -65,8 +65,3 @@ function filter( transactions, params ) {
 
 	return transactions;
 }
-
-export default {
-	formatDate: formatDate,
-	filter: filter,
-};

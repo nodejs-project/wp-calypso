@@ -12,12 +12,10 @@ import React from 'react';
 import { renderWithReduxStore } from 'lib/react-helpers';
 import TrafficMain from 'my-sites/site-settings/settings-traffic/main';
 
-export default {
-	traffic( context ) {
-		renderWithReduxStore(
-			React.createElement( TrafficMain ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+export const traffic = function( context ) {
+	renderWithReduxStore(
+		React.createElement( TrafficMain ),
+		document.getElementById( 'primary' ),
+		context.store
+	);
 };

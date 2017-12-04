@@ -1,5 +1,2 @@
-/** @format */
-export default {
-	LOCALSTORAGE_KEY: 'preferences-data',
-	USER_SETTING_KEY: 'calypso_preferences',
-};
+export const LOCALSTORAGE_KEY = 'preferences-data';
+export const USER_SETTING_KEY = 'calypso_preferences';

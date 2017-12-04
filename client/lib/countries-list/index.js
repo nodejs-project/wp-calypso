@@ -169,14 +169,14 @@ const domainRegistrationCountriesList = new DomainRegistrationCountriesList();
 const paymentCountriesList = new PaymentCountriesList();
 const smsCountriesList = new SmsCountriesList();
 
-export default {
-	forDomainRegistrations: function() {
-		return domainRegistrationCountriesList;
-	},
-	forPayments: function() {
-		return paymentCountriesList;
-	},
-	forSms: function() {
-		return smsCountriesList;
-	},
+export const forDomainRegistrations = function() {
+	return domainRegistrationCountriesList;
+};
+
+export const forPayments = function() {
+	return paymentCountriesList;
+};
+
+export const forSms = function() {
+	return smsCountriesList;
 };

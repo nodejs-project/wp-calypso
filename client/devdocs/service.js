@@ -19,20 +19,14 @@ function fetchDocsEndpoint( endpoint, params, callback ) {
 		} );
 }
 
-/**
- * This service allows you to retrieve a document list (with title, snippets and path) based on
- * query term or filename(s), and also to separately retrieve the document body by path.
- */
-export default {
-	search: function( term, callback ) {
-		fetchDocsEndpoint( 'search', { q: term }, callback );
-	},
+export const search = function( term, callback ) {
+	fetchDocsEndpoint( 'search', { q: term }, callback );
+};
 
-	list: function( filenames, callback ) {
-		fetchDocsEndpoint( 'list', { files: filenames.join( ',' ) }, callback );
-	},
+export const list = function( filenames, callback ) {
+	fetchDocsEndpoint( 'list', { files: filenames.join( ',' ) }, callback );
+};
 
-	fetch: function( path, callback ) {
-		fetchDocsEndpoint( 'content', { path: path }, callback );
-	},
+export const fetch = function( path, callback ) {
+	fetchDocsEndpoint( 'content', { path: path }, callback );
 };

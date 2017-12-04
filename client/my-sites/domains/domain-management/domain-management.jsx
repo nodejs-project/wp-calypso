@@ -20,23 +20,3 @@ import TransferOut from './transfer/transfer-out';
 import TransferToOtherSite from './transfer/transfer-to-other-site';
 import TransferToOtherUser from './transfer/transfer-to-other-user';
 import Transfer from './transfer';
-
-export default {
-	AddGoogleApps,
-	ContactsPrivacy,
-	Dns,
-	Edit,
-	EditContactInfo,
-	Email,
-	EmailForwarding,
-	List,
-	NameServers,
-	PrimaryDomain,
-	PrivacyProtection,
-	SiteRedirect,
-	TransferIn,
-	TransferOut,
-	TransferToOtherSite,
-	TransferToOtherUser,
-	Transfer,
-};

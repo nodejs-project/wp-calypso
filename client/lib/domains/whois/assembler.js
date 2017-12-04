@@ -11,7 +11,7 @@ import { find } from 'lodash';
  */
 import { whoisType } from './constants';
 
-function createDomainWhois( dataTransferObject ) {
+export function createDomainWhois( dataTransferObject ) {
 	const registrantWhois = createWhois( dataTransferObject, whoisType.REGISTRANT ),
 		privacyServiceWhois = createWhois( dataTransferObject, whoisType.PRIVACY_SERVICE );
 
@@ -39,7 +39,3 @@ function createWhois( dataTransferObject, type ) {
 		type,
 	};
 }
-
-export default {
-	createDomainWhois,
-};

@@ -12,12 +12,10 @@ import React from 'react';
 import { renderWithReduxStore } from 'lib/react-helpers';
 import SecurityMain from 'my-sites/site-settings/settings-security/main';
 
-export default {
-	security( context ) {
-		renderWithReduxStore(
-			React.createElement( SecurityMain ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+export const security = function( context ) {
+	renderWithReduxStore(
+		React.createElement( SecurityMain ),
+		document.getElementById( 'primary' ),
+		context.store
+	);
 };

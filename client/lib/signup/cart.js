@@ -27,33 +27,32 @@ function addProductsToCart( cart, newCartItems ) {
 	return cart;
 }
 
-export default {
-	createCart: function( cartKey, newCartItems, callback ) {
-		let newCart = {
-			cart_key: cartKey,
-			products: [],
-			temporary: false,
-		};
+export const createCart = function( cartKey, newCartItems, callback ) {
+	let newCart = {
+		cart_key: cartKey,
+		products: [],
+		temporary: false,
+	};
 
-		newCart = addProductsToCart( newCart, newCartItems );
+	newCart = addProductsToCart( newCart, newCartItems );
 
-		wpcom.undocumented().cart( cartKey, 'POST', newCart, function( postError ) {
-			callback( postError );
-		} );
-	},
-	addToCart: function( cartKey, newCartItems, callback ) {
-		wpcom.undocumented().cart( cartKey, function( error, data ) {
-			if ( error ) {
-				return callback( error );
-			}
+	wpcom.undocumented().cart( cartKey, 'POST', newCart, function( postError ) {
+		callback( postError );
+	} );
+};
 
-			if ( ! Array.isArray( newCartItems ) ) {
-				newCartItems = [ newCartItems ];
-			}
+export const addToCart = function( cartKey, newCartItems, callback ) {
+	wpcom.undocumented().cart( cartKey, function( error, data ) {
+		if ( error ) {
+			return callback( error );
+		}
 
-			const newCart = addProductsToCart( data, newCartItems );
+		if ( ! Array.isArray( newCartItems ) ) {
+			newCartItems = [ newCartItems ];
+		}
 
-			wpcom.undocumented().cart( cartKey, 'POST', newCart, callback );
-		} );
-	},
+		const newCart = addProductsToCart( data, newCartItems );
+
+		wpcom.undocumented().cart( cartKey, 'POST', newCart, callback );
+	} );
 };

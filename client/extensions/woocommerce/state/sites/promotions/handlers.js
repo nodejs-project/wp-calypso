@@ -32,13 +32,11 @@ const debug = debugFactory( 'woocommerce:promotions' );
 // TODO: Remove this once we have a Promotions API.
 const itemsPerPage = 30;
 
-export default {
-	[ WOOCOMMERCE_PROMOTION_CREATE ]: [ promotionCreate ],
-	[ WOOCOMMERCE_PROMOTION_UPDATE ]: [ promotionUpdate ],
-	[ WOOCOMMERCE_PROMOTION_DELETE ]: [ promotionDelete ],
-	[ WOOCOMMERCE_PROMOTIONS_REQUEST ]: [ promotionsRequest ],
-	[ WOOCOMMERCE_COUPONS_UPDATED ]: [ couponsUpdated ],
-};
+export const WOOCOMMERCE_PROMOTION_CREATE = [ promotionCreate ];
+export const WOOCOMMERCE_PROMOTION_UPDATE = [ promotionUpdate ];
+export const WOOCOMMERCE_PROMOTION_DELETE = [ promotionDelete ];
+export const WOOCOMMERCE_PROMOTIONS_REQUEST = [ promotionsRequest ];
+export const WOOCOMMERCE_COUPONS_UPDATED = [ couponsUpdated ];
 
 export function promotionsRequest( { dispatch }, action ) {
 	const { siteId } = action;

@@ -24,33 +24,29 @@ import { getCurrentLayoutFocus } from 'state/ui/layout-focus/selectors';
 import { setNextLayoutFocus } from 'state/ui/layout-focus/actions';
 import { getSelectedSite } from 'state/ui/selectors';
 
-export default {
-	redirectToTeam,
+export const enforceSiteEnding = function( context, next ) {
+	const siteId = route.getSiteFragment( context.path );
 
-	enforceSiteEnding( context, next ) {
-		const siteId = route.getSiteFragment( context.path );
+	if ( ! siteId ) {
+		redirectToTeam( context );
+	}
 
-		if ( ! siteId ) {
-			redirectToTeam( context );
-		}
-
-		next();
-	},
-
-	people( context ) {
-		renderPeopleList( context );
-	},
-
-	invitePeople( context ) {
-		renderInvitePeople( context );
-	},
-
-	person( context ) {
-		renderSingleTeamMember( context );
-	},
+	next();
 };
 
-function redirectToTeam( context ) {
+export const people = function( context ) {
+	renderPeopleList( context );
+};
+
+export const invitePeople = function( context ) {
+	renderInvitePeople( context );
+};
+
+export const person = function( context ) {
+	renderSingleTeamMember( context );
+};
+
+export function redirectToTeam( context ) {
 	if ( context ) {
 		// if we are redirecting we need to retain our intended layout-focus
 		const currentLayoutFocus = getCurrentLayoutFocus( context.store.getState() );

@@ -11,14 +11,10 @@ import React from 'react';
 import { renderWithReduxStore } from 'lib/react-helpers';
 import ConciergeMain from './main';
 
-const concierge = context => {
+export const concierge = context => {
 	renderWithReduxStore(
 		React.createElement( ConciergeMain, {} ),
 		document.getElementById( 'primary' ),
 		context.store
 	);
-};
-
-export default {
-	concierge,
 };

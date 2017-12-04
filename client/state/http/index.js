@@ -82,6 +82,4 @@ export const httpHandler = ( { dispatch }, action ) => {
 	);
 };
 
-export default {
-	[ HTTP_REQUEST ]: [ httpHandler ],
-};
+export const HTTP_REQUEST = [ httpHandler ];

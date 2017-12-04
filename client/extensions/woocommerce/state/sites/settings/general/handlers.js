@@ -71,13 +71,12 @@ export const handleCurrencyUpdate = ( store, action ) => {
 	);
 };
 
-export default {
-	[ WOOCOMMERCE_SETTINGS_GENERAL_REQUEST ]: [
-		dispatchRequest(
-			handleSettingsGeneral,
-			handleSettingsGeneralSuccess,
-			handleSettingsGeneralError
-		),
-	],
-	[ WOOCOMMERCE_CURRENCY_UPDATE ]: [ handleCurrencyUpdate ],
-};
+export const WOOCOMMERCE_SETTINGS_GENERAL_REQUEST = [
+	dispatchRequest(
+		handleSettingsGeneral,
+		handleSettingsGeneralSuccess,
+		handleSettingsGeneralError
+	),
+];
+
+export const WOOCOMMERCE_CURRENCY_UPDATE = [ handleCurrencyUpdate ];

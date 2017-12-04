@@ -12,7 +12,7 @@ import i18n from 'i18n-calypso';
  */
 import sortProducts from 'lib/products-values/sort';
 
-function createPurchaseObject( purchase ) {
+export function createPurchaseObject( purchase ) {
 	const object = {
 		id: Number( purchase.ID ),
 		active: Boolean( purchase.active ),
@@ -86,15 +86,10 @@ function createPurchaseObject( purchase ) {
 	return object;
 }
 
-function createPurchasesArray( dataTransferObject ) {
+export function createPurchasesArray( dataTransferObject ) {
 	if ( ! Array.isArray( dataTransferObject ) ) {
 		return [];
 	}
 
 	return sortProducts( dataTransferObject.map( createPurchaseObject ) );
 }
-
-export default {
-	createPurchaseObject,
-	createPurchasesArray,
-};

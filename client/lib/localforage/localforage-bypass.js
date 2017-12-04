@@ -18,7 +18,7 @@ const debug = debugModule( 'calypso:support-user' );
 const dummyStorage = {};
 
 // Config the localStorage backend, using options set in the config.
-function _initStorage( options ) {
+export function _initStorage( options ) {
 	const dbInfo = {};
 	if ( options ) {
 		for ( let i in options ) {
@@ -33,7 +33,7 @@ function _initStorage( options ) {
 	return Promise.resolve();
 }
 
-function clear( callback ) {
+export function clear( callback ) {
 	debug( 'localForage bypass', 'clear' );
 
 	const promise = new Promise( ( resolve, reject ) => {
@@ -56,7 +56,7 @@ function clear( callback ) {
 	return promise;
 }
 
-function getItem( key, callback ) {
+export function getItem( key, callback ) {
 	debug( 'localForage bypass', 'getItem', key );
 
 	// Cast the key to a string, as that's all we can set as a key.
@@ -83,7 +83,7 @@ function getItem( key, callback ) {
 	return promise;
 }
 
-function iterate( callback ) {
+export function iterate( callback ) {
 	const promise = new Promise( ( resolve, reject ) => {
 		this.ready()
 			.then( () => {
@@ -157,7 +157,7 @@ function _keys( callback ) {
 	return promise;
 }
 
-function length( callback ) {
+export function length( callback ) {
 	const promise = new Promise( ( resolve, reject ) => {
 		this.keys()
 			.then( keys => {
@@ -170,7 +170,7 @@ function length( callback ) {
 	return promise;
 }
 
-function removeItem( key, callback ) {
+export function removeItem( key, callback ) {
 	debug( 'localForage bypass', 'removeItem', key );
 
 	const promise = new Promise( ( resolve, reject ) => {
@@ -194,7 +194,7 @@ function removeItem( key, callback ) {
 	return promise;
 }
 
-function setItem( key, value, callback ) {
+export function setItem( key, value, callback ) {
 	debug( 'localForage bypass', 'setItem', key );
 
 	const promise = new Promise( ( resolve, reject ) => {
@@ -237,16 +237,4 @@ function executeCallback( promise, callback ) {
 	}
 }
 
-export default {
-	_driver: 'localForageBypass',
-	_initStorage: _initStorage,
-	// _supports: function() { return true; }
-	iterate: iterate,
-	getItem: getItem,
-	setItem: setItem,
-	removeItem: removeItem,
-	clear: clear,
-	length: length,
-	key: _key,
-	keys: _keys,
-};
+export const _driver = 'localForageBypass';

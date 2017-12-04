@@ -66,158 +66,156 @@ const jetpackNewSiteSelector = context => {
 	);
 };
 
-export default {
-	redirectWithoutLocaleifLoggedIn( context, next ) {
-		if ( userModule.get() && i18nUtils.getLocaleFromPath( context.path ) ) {
-			const urlWithoutLocale = i18nUtils.removeLocaleFromPath( context.path );
-			debug( 'redirectWithoutLocaleifLoggedIn to %s', urlWithoutLocale );
-			return page.redirect( urlWithoutLocale );
+export const redirectWithoutLocaleifLoggedIn = function( context, next ) {
+	if ( userModule.get() && i18nUtils.getLocaleFromPath( context.path ) ) {
+		const urlWithoutLocale = i18nUtils.removeLocaleFromPath( context.path );
+		debug( 'redirectWithoutLocaleifLoggedIn to %s', urlWithoutLocale );
+		return page.redirect( urlWithoutLocale );
+	}
+
+	next();
+};
+
+export const saveQueryObject = function( context, next ) {
+	if ( ! isEmpty( context.query ) && context.query.redirect_uri ) {
+		debug( 'set initial query object', context.query );
+		context.store.dispatch( {
+			type: JETPACK_CONNECT_QUERY_SET,
+			queryObject: context.query,
+		} );
+		page.redirect( context.pathname );
+	}
+
+	next();
+};
+
+export const newSite = function( context ) {
+	analytics.pageView.record( '/jetpack/new', 'Add a new site (Jetpack)' );
+	jetpackNewSiteSelector( context );
+};
+
+export const connect = function( context ) {
+	const { path, pathname, params } = context;
+	const { type = false } = params;
+	const analyticsPageTitle = get( type, analyticsPageTitleByType, 'Jetpack Connect' );
+
+	debug( 'entered connect flow with params %o', params );
+
+	analytics.pageView.record( pathname, analyticsPageTitle );
+
+	removeSidebar( context );
+
+	userModule.fetch();
+
+	renderWithReduxStore(
+		React.createElement( JetpackConnect, {
+			context,
+			locale: context.params.locale,
+			path,
+			type,
+			url: context.query.url,
+			userModule,
+		} ),
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
+
+export const authorizeForm = function( context ) {
+	const analyticsBasePath = 'jetpack/connect/authorize',
+		analyticsPageTitle = 'Jetpack Authorize';
+
+	removeSidebar( context );
+
+	let interval = context.params.interval;
+	let locale = context.params.locale;
+	if ( context.params.localeOrInterval ) {
+		if ( [ 'monthly', 'yearly' ].indexOf( context.params.localeOrInterval ) >= 0 ) {
+			interval = context.params.localeOrInterval;
+		} else {
+			locale = context.params.localeOrInterval;
 		}
+	}
 
-		next();
-	},
+	analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
+	renderWithReduxStore(
+		<JetpackConnectAuthorizeForm path={ context.path } interval={ interval } locale={ locale } />,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-	saveQueryObject( context, next ) {
-		if ( ! isEmpty( context.query ) && context.query.redirect_uri ) {
-			debug( 'set initial query object', context.query );
-			context.store.dispatch( {
-				type: JETPACK_CONNECT_QUERY_SET,
-				queryObject: context.query,
-			} );
-			page.redirect( context.pathname );
-		}
+export const sso = function( context ) {
+	const analyticsBasePath = '/jetpack/sso',
+		analyticsPageTitle = 'Jetpack SSO';
 
-		next();
-	},
+	removeSidebar( context );
 
-	newSite( context ) {
-		analytics.pageView.record( '/jetpack/new', 'Add a new site (Jetpack)' );
-		jetpackNewSiteSelector( context );
-	},
+	userModule.fetch();
 
-	connect( context ) {
-		const { path, pathname, params } = context;
-		const { type = false } = params;
-		const analyticsPageTitle = get( type, analyticsPageTitleByType, 'Jetpack Connect' );
+	analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
 
-		debug( 'entered connect flow with params %o', params );
+	renderWithReduxStore(
+		React.createElement( jetpackSSOForm, {
+			path: context.path,
+			locale: context.params.locale,
+			userModule: userModule,
+			siteId: context.params.siteId,
+			ssoNonce: context.params.ssoNonce,
+		} ),
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-		analytics.pageView.record( pathname, analyticsPageTitle );
+export const plansLanding = function( context ) {
+	const analyticsPageTitle = 'Plans';
+	const basePath = route.sectionify( context.path );
+	const analyticsBasePath = basePath + '/:site';
 
-		removeSidebar( context );
+	removeSidebar( context );
 
-		userModule.fetch();
+	context.store.dispatch( setTitle( translate( 'Plans', { textOnly: true } ) ) );
 
-		renderWithReduxStore(
-			React.createElement( JetpackConnect, {
-				context,
-				locale: context.params.locale,
-				path,
-				type,
-				url: context.query.url,
-				userModule,
-			} ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	analytics.tracks.recordEvent( 'calypso_plans_view' );
+	analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
 
-	authorizeForm( context ) {
-		const analyticsBasePath = 'jetpack/connect/authorize',
-			analyticsPageTitle = 'Jetpack Authorize';
+	renderWithReduxStore(
+		<PlansLanding
+			context={ context }
+			destinationType={ context.params.destinationType }
+			interval={ context.params.interval }
+			basePlansPath={ '/jetpack/connect/store' }
+			url={ context.query.site }
+		/>,
+		document.getElementById( 'primary' ),
+		context.store
+	);
+};
 
-		removeSidebar( context );
+export const plansSelection = function( context ) {
+	const analyticsPageTitle = 'Plans';
+	const basePath = route.sectionify( context.path );
+	const analyticsBasePath = basePath + '/:site';
 
-		let interval = context.params.interval;
-		let locale = context.params.locale;
-		if ( context.params.localeOrInterval ) {
-			if ( [ 'monthly', 'yearly' ].indexOf( context.params.localeOrInterval ) >= 0 ) {
-				interval = context.params.localeOrInterval;
-			} else {
-				locale = context.params.localeOrInterval;
-			}
-		}
+	removeSidebar( context );
 
-		analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
-		renderWithReduxStore(
-			<JetpackConnectAuthorizeForm path={ context.path } interval={ interval } locale={ locale } />,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+	context.store.dispatch( setTitle( translate( 'Plans', { textOnly: true } ) ) );
 
-	sso( context ) {
-		const analyticsBasePath = '/jetpack/sso',
-			analyticsPageTitle = 'Jetpack SSO';
+	analytics.tracks.recordEvent( 'calypso_plans_view' );
+	analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
 
-		removeSidebar( context );
-
-		userModule.fetch();
-
-		analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
-
-		renderWithReduxStore(
-			React.createElement( jetpackSSOForm, {
-				path: context.path,
-				locale: context.params.locale,
-				userModule: userModule,
-				siteId: context.params.siteId,
-				ssoNonce: context.params.ssoNonce,
-			} ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
-
-	plansLanding( context ) {
-		const analyticsPageTitle = 'Plans';
-		const basePath = route.sectionify( context.path );
-		const analyticsBasePath = basePath + '/:site';
-
-		removeSidebar( context );
-
-		context.store.dispatch( setTitle( translate( 'Plans', { textOnly: true } ) ) );
-
-		analytics.tracks.recordEvent( 'calypso_plans_view' );
-		analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
-
-		renderWithReduxStore(
-			<PlansLanding
+	renderWithReduxStore(
+		<CheckoutData>
+			<Plans
 				context={ context }
 				destinationType={ context.params.destinationType }
+				basePlansPath={ '/jetpack/connect/plans' }
 				interval={ context.params.interval }
-				basePlansPath={ '/jetpack/connect/store' }
-				url={ context.query.site }
-			/>,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
-
-	plansSelection( context ) {
-		const analyticsPageTitle = 'Plans';
-		const basePath = route.sectionify( context.path );
-		const analyticsBasePath = basePath + '/:site';
-
-		removeSidebar( context );
-
-		// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
-		context.store.dispatch( setTitle( translate( 'Plans', { textOnly: true } ) ) );
-
-		analytics.tracks.recordEvent( 'calypso_plans_view' );
-		analytics.pageView.record( analyticsBasePath, analyticsPageTitle );
-
-		renderWithReduxStore(
-			<CheckoutData>
-				<Plans
-					context={ context }
-					destinationType={ context.params.destinationType }
-					basePlansPath={ '/jetpack/connect/plans' }
-					interval={ context.params.interval }
-				/>
-			</CheckoutData>,
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+			/>
+		</CheckoutData>,
+		document.getElementById( 'primary' ),
+		context.store
+	);
 };

@@ -43,43 +43,41 @@ function _getLayoutTitle( context ) {
 	}
 }
 
-export default {
-	redirect: function( context ) {
-		page.redirect( '/ads/earnings/' + context.params.site_id );
+export const redirect = function( context ) {
+	page.redirect( '/ads/earnings/' + context.params.site_id );
+	return;
+};
+
+export const layout = function( context ) {
+	const site = getSelectedSite( context.store.getState() );
+	const pathSuffix = site ? '/' + site.slug : '';
+	const layoutTitle = _getLayoutTitle( context );
+
+	context.store.dispatch( setTitle( layoutTitle ) ); // FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+
+	if ( ! userCan( 'manage_options', site ) ) {
+		page.redirect( '/stats' + pathSuffix );
 		return;
-	},
+	}
 
-	layout: function( context ) {
-		const site = getSelectedSite( context.store.getState() );
-		const pathSuffix = site ? '/' + site.slug : '';
-		const layoutTitle = _getLayoutTitle( context );
+	if ( ! canAccessWordads( site ) ) {
+		page.redirect( '/stats' + pathSuffix );
+		return;
+	}
 
-		context.store.dispatch( setTitle( layoutTitle ) ); // FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
+	_recordPageView( context, layoutTitle );
 
-		if ( ! userCan( 'manage_options', site ) ) {
-			page.redirect( '/stats' + pathSuffix );
-			return;
-		}
+	// Scroll to the top
+	if ( typeof window !== 'undefined' ) {
+		window.scrollTo( 0, 0 );
+	}
 
-		if ( ! canAccessWordads( site ) ) {
-			page.redirect( '/stats' + pathSuffix );
-			return;
-		}
-
-		_recordPageView( context, layoutTitle );
-
-		// Scroll to the top
-		if ( typeof window !== 'undefined' ) {
-			window.scrollTo( 0, 0 );
-		}
-
-		renderWithReduxStore(
-			React.createElement( Ads, {
-				section: context.params.section,
-				path: context.path,
-			} ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
-	},
+	renderWithReduxStore(
+		React.createElement( Ads, {
+			section: context.params.section,
+			path: context.path,
+		} ),
+		document.getElementById( 'primary' ),
+		context.store
+	);
 };

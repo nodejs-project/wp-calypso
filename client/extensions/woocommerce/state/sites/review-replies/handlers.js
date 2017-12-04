@@ -27,32 +27,29 @@ import {
 	WOOCOMMERCE_REVIEW_REPLY_UPDATED,
 } from 'woocommerce/state/action-types';
 
-export default {
-	[ WOOCOMMERCE_REVIEW_REPLIES_REQUEST ]: [
-		dispatchRequest(
-			handleReviewRepliesRequest,
-			handleReviewRepliesRequestSuccess,
-			handleReviewRepliesRequestError
-		),
-	],
-	[ WOOCOMMERCE_REVIEW_REPLY_CREATE_REQUEST ]: [
-		dispatchRequest(
-			handleReviewReplyCreate,
-			handleReviewReplyCreateSuccess,
-			announceCreateFailure
-		),
-	],
-	[ WOOCOMMERCE_REVIEW_REPLY_DELETE_REQUEST ]: [
-		dispatchRequest( handleDeleteReviewReply, announceDeleteSuccess, announceDeleteFailure ),
-	],
-	[ WOOCOMMERCE_REVIEW_REPLY_UPDATE_REQUEST ]: [
-		dispatchRequest(
-			handleReviewReplyUpdate,
-			handleReviewReplyUpdateSuccess,
-			announceReviewReplyUpdateFailure
-		),
-	],
-};
+export const WOOCOMMERCE_REVIEW_REPLIES_REQUEST = [
+	dispatchRequest(
+		handleReviewRepliesRequest,
+		handleReviewRepliesRequestSuccess,
+		handleReviewRepliesRequestError
+	),
+];
+
+export const WOOCOMMERCE_REVIEW_REPLY_CREATE_REQUEST = [
+	dispatchRequest( handleReviewReplyCreate, handleReviewReplyCreateSuccess, announceCreateFailure ),
+];
+
+export const WOOCOMMERCE_REVIEW_REPLY_DELETE_REQUEST = [
+	dispatchRequest( handleDeleteReviewReply, announceDeleteSuccess, announceDeleteFailure ),
+];
+
+export const WOOCOMMERCE_REVIEW_REPLY_UPDATE_REQUEST = [
+	dispatchRequest(
+		handleReviewReplyUpdate,
+		handleReviewReplyUpdateSuccess,
+		announceReviewReplyUpdateFailure
+	),
+];
 
 export function handleReviewRepliesRequest( { dispatch }, action ) {
 	const { siteId, reviewId } = action;

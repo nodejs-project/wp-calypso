@@ -22,14 +22,19 @@ import { couponDeleted, couponUpdated, couponsUpdated } from './actions';
 
 const debug = debugFactory( 'woocommerce:coupons' );
 
-export default {
-	[ WOOCOMMERCE_COUPONS_REQUEST ]: [
-		dispatchRequest( requestCoupons, requestCouponsSuccess, apiError ),
-	],
-	[ WOOCOMMERCE_COUPON_CREATE ]: [ dispatchRequest( couponCreate, couponCreateSuccess, apiError ) ],
-	[ WOOCOMMERCE_COUPON_UPDATE ]: [ dispatchRequest( couponUpdate, couponUpdateSuccess, apiError ) ],
-	[ WOOCOMMERCE_COUPON_DELETE ]: [ dispatchRequest( couponDelete, couponDeleteSuccess, apiError ) ],
-};
+export const WOOCOMMERCE_COUPONS_REQUEST = [
+	dispatchRequest( requestCoupons, requestCouponsSuccess, apiError ),
+];
+
+export const WOOCOMMERCE_COUPON_CREATE = [
+	dispatchRequest( couponCreate, couponCreateSuccess, apiError ),
+];
+export const WOOCOMMERCE_COUPON_UPDATE = [
+	dispatchRequest( couponUpdate, couponUpdateSuccess, apiError ),
+];
+export const WOOCOMMERCE_COUPON_DELETE = [
+	dispatchRequest( couponDelete, couponDeleteSuccess, apiError ),
+];
 
 export function requestCoupons( { dispatch }, action ) {
 	const { siteId, params } = action;

@@ -29,7 +29,7 @@ import { getCurrentUser } from 'state/current-user/selectors';
  */
 const productsList = productsFactory();
 
-const domainsAddHeader = ( context, next ) => {
+export const domainsAddHeader = ( context, next ) => {
 	context.getSiteSelectionHeaderText = () => {
 		return translate( 'Select a site to add a domain' );
 	};
@@ -37,7 +37,7 @@ const domainsAddHeader = ( context, next ) => {
 	next();
 };
 
-const domainsAddRedirectHeader = ( context, next ) => {
+export const domainsAddRedirectHeader = ( context, next ) => {
 	context.getSiteSelectionHeaderText = () => {
 		return translate( 'Select a site to add Site Redirect' );
 	};
@@ -45,7 +45,7 @@ const domainsAddRedirectHeader = ( context, next ) => {
 	next();
 };
 
-const domainSearch = context => {
+export const domainSearch = context => {
 	const CartData = require( 'components/data/cart' );
 	const DomainSearch = require( './domain-search' );
 	const basePath = route.sectionify( context.path );
@@ -69,7 +69,7 @@ const domainSearch = context => {
 	);
 };
 
-const siteRedirect = context => {
+export const siteRedirect = context => {
 	const CartData = require( 'components/data/cart' );
 	const SiteRedirect = require( './domain-search/site-redirect' );
 	const basePath = route.sectionify( context.path );
@@ -88,7 +88,7 @@ const siteRedirect = context => {
 	);
 };
 
-const mapDomain = context => {
+export const mapDomain = context => {
 	const CartData = require( 'components/data/cart' );
 	const MapDomain = require( 'my-sites/domains/map-domain' ).default;
 	const basePath = route.sectionify( context.path );
@@ -107,7 +107,7 @@ const mapDomain = context => {
 	);
 };
 
-const transferDomain = context => {
+export const transferDomain = context => {
 	const CartData = require( 'components/data/cart' );
 	const TransferDomain = require( 'my-sites/domains/transfer-domain' ).default;
 	const basePath = route.sectionify( context.path );
@@ -125,7 +125,7 @@ const transferDomain = context => {
 	);
 };
 
-const googleAppsWithRegistration = context => {
+export const googleAppsWithRegistration = context => {
 	const CartData = require( 'components/data/cart' );
 	const GoogleApps = require( 'components/upgrades/google-apps' );
 
@@ -172,7 +172,7 @@ const googleAppsWithRegistration = context => {
 	);
 };
 
-const redirectIfNoSite = redirectTo => {
+export const redirectIfNoSite = redirectTo => {
 	return ( context, next ) => {
 		const state = context.store.getState();
 		const siteId = getSelectedSiteId( state );
@@ -189,7 +189,7 @@ const redirectIfNoSite = redirectTo => {
 	};
 };
 
-const redirectToAddMappingIfVipSite = () => {
+export const redirectToAddMappingIfVipSite = () => {
 	return ( context, next ) => {
 		const state = context.store.getState();
 		const selectedSite = getSelectedSite( state );
@@ -202,16 +202,4 @@ const redirectToAddMappingIfVipSite = () => {
 
 		next();
 	};
-};
-
-export default {
-	domainsAddHeader,
-	domainsAddRedirectHeader,
-	domainSearch,
-	siteRedirect,
-	mapDomain,
-	googleAppsWithRegistration,
-	redirectIfNoSite,
-	redirectToAddMappingIfVipSite,
-	transferDomain,
 };

@@ -28,21 +28,21 @@ import {
 	WOOCOMMERCE_REVIEW_STATUS_CHANGE,
 } from 'woocommerce/state/action-types';
 
-export default {
-	[ WOOCOMMERCE_REVIEWS_REQUEST ]: [
-		dispatchRequest( handleReviewsRequest, handleReviewsRequestSuccess, handleReviewsRequestError ),
-	],
-	[ WOOCOMMERCE_REVIEW_STATUS_CHANGE ]: [
-		dispatchRequest(
-			handleChangeReviewStatus,
-			handleChangeReviewStatusSuccess,
-			announceStatusChangeFailure
-		),
-	],
-	[ WOOCOMMERCE_REVIEW_DELETE ]: [
-		dispatchRequest( handleDeleteReview, announceDeleteSuccess, announceDeleteFailure ),
-	],
-};
+export const WOOCOMMERCE_REVIEWS_REQUEST = [
+	dispatchRequest( handleReviewsRequest, handleReviewsRequestSuccess, handleReviewsRequestError ),
+];
+
+export const WOOCOMMERCE_REVIEW_STATUS_CHANGE = [
+	dispatchRequest(
+		handleChangeReviewStatus,
+		handleChangeReviewStatusSuccess,
+		announceStatusChangeFailure
+	),
+];
+
+export const WOOCOMMERCE_REVIEW_DELETE = [
+	dispatchRequest( handleDeleteReview, announceDeleteSuccess, announceDeleteFailure ),
+];
 
 export function handleReviewsRequest( { dispatch }, action ) {
 	const { siteId, query } = action;
